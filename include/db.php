@@ -15,7 +15,11 @@
 abstract class Scaffold_Db
 {
 
+	protected $fields = array();
+
 	abstract public function Connect($dbInfoArray);
+	
+	abstract public function ListFields($table);
 	
 	//abstract public function Show($dbInfoArray);
 

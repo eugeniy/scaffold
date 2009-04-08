@@ -1,4 +1,4 @@
-<?php
+ <?php
 /**
  *
  * Scaffold Class
@@ -11,13 +11,45 @@
  */
 class Scaffold
 {
+
+	protected $table;
+
+	//protected $fields = array();
+	//protected $headers = array();
+	//protected $hidden = array();
+
+	protected $db;
+
+
 	public function __construct($config = null)
 	{
 		// MAKE SURE $config['db']['adapter'] and $config['db'] are set
-		$db = $this->LoadDbAdapter($config['db']['adapter']);
-		$db->Connect($config['db']);
+		$this->db = $this->LoadDbAdapter($config['db']['adapter']);
+		$this->db->Connect($config['db']);
+		
 		
 	}
+
+
+	public function GetList($table)
+	{
+		echo '<table><tr>';
+		foreach ($this->db->ListFields($table) as $field)
+			echo "<th>{$field}</th>";
+		echo '</tr></table>';
+	}
+
+	
+	protected function InitFields()
+	{
+		require_once 'include/field/text.php';
+
+		foreach ( $this->db->ListFields($table) as $field )
+		{
+			$this->fields[$field] = new Scaffold_Field_Text();
+		}
+	}
+	
 
 	/**
 	 * Attempt to load a database adapter.
@@ -28,10 +60,10 @@ class Scaffold
 		if (is_string($adapter) && !preg_match('/[^a-z0-9\\/\\\\_.-]/i', $adapter))
 		{
 			// Make sure the file can be opened
-			$fileName = "db/{$adapter}.php";
+			$fileName = "include/db/{$adapter}.php";
 			if (is_readable($fileName))
 			{
-				include_once 'db.php';
+				include_once 'include/db.php';
 				include_once $fileName;
 				
 				// After an adapter was loaded, make sure it is valid
@@ -47,4 +79,20 @@ class Scaffold
 		}
 		else throw new Exception("Illegal database adapter name.");
 	}
+
+	
+
+	protected function GenerateClassNames($inAdapter, $inType)
+	{
+		$top = 'Scaffold';
+		$adapter = ucfirst($inAdapter);
+		$type = ucfirst($inType);
+
+		return array(
+			'top' => $top,
+			'parent' => "{$top}_{$type}",
+			'current' => "{$top}_{$type}_{$adapter}"
+		);
+	}
+	
 }

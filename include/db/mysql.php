@@ -33,6 +33,22 @@ class Scaffold_Db_Mysql extends Scaffold_Db
 	}
 
 
+	public function ListFields($table)
+	{
+		if (empty($this->fields))
+		{
+			$result = mysql_query("SHOW COLUMNS FROM {$table}", $this->handle);
+
+			if ($result)
+			{
+				while ($data = mysql_fetch_assoc($result))
+					$this->fields[] = $data['Field'];
+				return $this->fields;
+			}
+			else throw new Exception('Failed to get field names from the table.');
+		}
+	}
+
 	
 
 }
