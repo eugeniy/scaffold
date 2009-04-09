@@ -8,28 +8,22 @@ ini_set('display_errors', '1');
 
 require_once 'scaffold.php';
 
-require_once 'include/field.php';
-require_once 'include/field/text.php';
-
-
-$field = new Scaffold_Field_Text();
-
-echo $field->GetField();
 
 
 
 
+$dsn = 'mysql:dbname=eugeniy_scaffold;host=localhost';
+$user = 'eugeniy_scaffold';
+$password = 'fraru9ax';
 
-$config['db']['adapter'] = 'mysql';
-//$config['db']['server'] = 'localhost';
-$config['db']['username'] = 'eugeniy_scaffold';
-$config['db']['password'] = 'fraru9ax';
-//$config['db']['database'] = 'eugeniy_scaffold';
+$dbase = new PDO($dsn, $user, $password);
 
 
-$test = new Scaffold($config);
+$test = new Scaffold($dbase, 'products');
 
-echo $test->GetList('products');
+$test->DisplayList();
+
+
 
 ?>
 

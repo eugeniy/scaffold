@@ -11,88 +11,66 @@
  */
 class Scaffold
 {
-
+	protected $pdo;
 	protected $table;
-
-	//protected $fields = array();
-	//protected $headers = array();
-	//protected $hidden = array();
-
-	protected $db;
-
-
-	public function __construct($config = null)
-	{
-		// MAKE SURE $config['db']['adapter'] and $config['db'] are set
-		$this->db = $this->LoadDbAdapter($config['db']['adapter']);
-		$this->db->Connect($config['db']);
-		
-		
-	}
-
-
-	public function GetList($table)
-	{
-		echo '<table><tr>';
-		foreach ($this->db->ListFields($table) as $field)
-			echo "<th>{$field}</th>";
-		echo '</tr></table>';
-	}
-
 	
-	protected function InitFields()
-	{
-		require_once 'include/field/text.php';
+	protected $columns = null;
+	//protected $driver;
 
-		foreach ( $this->db->ListFields($table) as $field )
-		{
-			$this->fields[$field] = new Scaffold_Field_Text();
-		}
+
+	public function __construct($pdo, $table)
+	{
+		$this->pdo = $pdo;
+		$this->table = $table;
+		
+		//$this->driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
 	}
 	
 
-	/**
-	 * Attempt to load a database adapter.
-	 */
-	protected function LoadDbAdapter($adapter)
+
+	public function DisplayList()
 	{
-		// Verify the basic format of the string
-		if (is_string($adapter) && !preg_match('/[^a-z0-9\\/\\\\_.-]/i', $adapter))
+		echo "<table>\n";
+
+		$list = $this->pdo->prepare("SELECT * FROM `{$this->table}`");
+		$list->execute();
+		$list->setFetchMode(PDO::FETCH_ASSOC);
+		
+		foreach ($list->fetchAll() as $row)
 		{
-			// Make sure the file can be opened
-			$fileName = "include/db/{$adapter}.php";
-			if (is_readable($fileName))
+			// On the first pass, set and display columns
+			if ($this->columns === null)
 			{
-				include_once 'include/db.php';
-				include_once $fileName;
-				
-				// After an adapter was loaded, make sure it is valid
-				// We do that by checking if it extends the DB abstract class
-				$className = 'Scaffold_Db_'.ucfirst($adapter);
-				if (is_subclass_of($className, 'Scaffold_Db'))
-				{
-					return new $className;
-				}
-				else throw new Exception("Database adapter is not valid.");
+				$this->SetColumns($row);
+				echo '<tr>';
+				foreach ($this->columns as $key => $value)
+					echo "<th>{$key}</th>";
+				echo "</tr>\n";
 			}
-			else throw new Exception("Database adapter is not accessible.");
+		
+			// Display the rest of records
+			echo '<tr>';
+			
+			foreach ($row as $key => $value)
+				echo "<td>{$value}</td>";
+				
+			echo "</tr>\n";
 		}
-		else throw new Exception("Illegal database adapter name.");
+		
+		echo "</table>\n";
 	}
+
+
+	protected function SetColumns($keys)
+	{
+		$this->columns = array_fill_keys(array_keys($keys), null);
+	}
+	
+
+
 
 	
 
-	protected function GenerateClassNames($inAdapter, $inType)
-	{
-		$top = 'Scaffold';
-		$adapter = ucfirst($inAdapter);
-		$type = ucfirst($inType);
 
-		return array(
-			'top' => $top,
-			'parent' => "{$top}_{$type}",
-			'current' => "{$top}_{$type}_{$adapter}"
-		);
-	}
 	
 }
