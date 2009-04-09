@@ -14,6 +14,7 @@ class Scaffold
 	protected $pdo;
 	protected $table;
 	
+	protected $primaryId = null;
 	protected $columns = null;
 	//protected $driver;
 
@@ -38,28 +39,40 @@ class Scaffold
 		
 		foreach ($list->fetchAll() as $row)
 		{
+			// Use the first cell as the primary Id
+			if ($this->primaryId === null)
+				$this->primaryId = key($row);
+		
 			// On the first pass, set and display columns
 			if ($this->columns === null)
 			{
 				$this->SetColumns($row);
-				echo '<tr>';
-				foreach ($this->columns as $key => $value)
-					echo "<th>{$key}</th>";
-				echo "</tr>\n";
+				$this->DisplayHeader();
 			}
 		
 			// Display the rest of records
-			echo '<tr>';
-			
-			foreach ($row as $key => $value)
-				echo "<td>{$value}</td>";
-				
-			echo "</tr>\n";
+			$this->DisplayRow($row);
 		}
 		
 		echo "</table>\n";
 	}
 
+
+	protected function DisplayHeader()
+	{
+		echo '<tr>';
+		foreach ($this->columns as $key => $value)
+			echo "<th>{$key}</th>";
+		echo "<th>Actions</th></tr>\n";
+	}
+	
+	protected function DisplayRow($row)
+	{
+		echo '<tr>';
+		foreach ($row as $key => $value)
+			echo "<td>{$value}</td>";
+		echo "<td><a href=\"?{$row[$this->primaryId]}\">Edit</a><a href=\"?{$row[$this->primaryId]}\">Delete</a></td></tr>\n";
+	}
 
 	protected function SetColumns($keys)
 	{
