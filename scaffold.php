@@ -11,24 +11,47 @@
  */
 class Scaffold
 {
-	protected $pdo;
 	protected $table;
 	
-	protected $primaryId = null;
-	protected $columns = null;
-	//protected $driver;
+	protected $columns;
 
 
-	public function __construct($pdo, $table)
+	protected $db;
+	protected $view;
+
+
+	public function __construct($config)
 	{
-		$this->pdo = $pdo;
-		$this->table = $table;
+
+		$this->table = $config['table'];
 		
-		//$this->driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+		require_once "Zend/Loader.php";
+		Zend_Loader::registerAutoload();
+		
+		$this->db = Zend_Db::factory($config['database']['adapter'], $config['database']['params']);
+		
+		 $this->columns = $this->db->describeTable($this->table);
+		
+		$this->view = new Zend_View();
+		$this->view->setBasePath('./views');
+
+
+	}
+
+
+	public function DisplayList()
+	{		
+		
+		$this->view->title = 'List';
+		$this->view->columns = $this->columns;
+		
+		$this->view->rows = $this->db->select()->from($this->table)->query()->fetchAll();
+		
+		echo $this->view->render('list.php');
 	}
 	
 
-
+/*
 	public function DisplayList()
 	{
 		echo "<table>\n";
@@ -57,6 +80,7 @@ class Scaffold
 		echo "</table>\n";
 	}
 
+*/
 
 	protected function DisplayHeader()
 	{
