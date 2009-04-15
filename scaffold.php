@@ -25,6 +25,9 @@ class Scaffold
 		$this->view = new Zend_View();
 		$this->view->setBasePath('./views');
 		
+		Zend_Paginator::setDefaultScrollingStyle('Sliding');
+		Zend_View_Helper_PaginationControl::setDefaultViewPartial('pagination.php');
+		
 		// Connect to the database
 		$this->db = Zend_Db::factory($config['database']['adapter'], $config['database']['params']);
 
@@ -56,32 +59,29 @@ class Scaffold
 	
 	public function DisplayList()
 	{
-		$this->view->rows = $this->table->fetchAll($this->table->select())->toArray();
+		$select = $this->table->select();
+		$this->view->rows = $this->table->fetchAll()->toArray();
 
 		$this->view->fields = $this->table->GetFields();
 		$this->view->primary = $this->table->GetPrimary();
 		$this->view->title = $this->table->GetLabel();
+		
+		$paginator = new Zend_Paginator(new Zend_Paginator_Adapter_DbTableSelect($select));
+		
+		$paginator->setItemCountPerPage(5);
+		//$paginator->setPageRange(5);
+		$paginator->setCurrentPageNumber(2);
+		
+		$this->view->pagination = $this->view->paginationControl($paginator);
 
 		echo $this->view->render('list.php');
+		
 		
 		
 		//->order($order)->limit($count, $offset);
 		
 		
-		/*
-		
-		$table = new Bugs();
 
-$select = $table->select();
-$select->from($table,
-              array('COUNT(reported_by) as `count`', 'reported_by'))
-       ->where('bug_status = ?', 'NEW')
-       ->group('reported_by');
-
-$rows = $table->fetchAll($select);
-		
-		
-		*/
 		
 		
 	}

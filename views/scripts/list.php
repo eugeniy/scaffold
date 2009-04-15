@@ -31,6 +31,6 @@
  
 </table>
  
-<?php echo $pagination; ?>
+<?php echo $this->pagination; ?>
  
 </div>
