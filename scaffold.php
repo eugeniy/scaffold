@@ -12,34 +12,78 @@
 class Scaffold
 {
 	protected $db;
+	protected $table;
 
 
 	public function __construct($config)
-	{
-		//self::$configuration = $config;
-		
-
-		//$this->table = $config['current_table'];
-		
-		
+	{		
 		// Load Zend
 		set_include_path(get_include_path() . PATH_SEPARATOR . $config['zend_path']);
 		require_once "Zend/Loader.php";
 		Zend_Loader::registerAutoload();
 		
+		$this->view = new Zend_View();
+		$this->view->setBasePath('./views');
+		
 		// Connect to the database
 		$this->db = Zend_Db::factory($config['database']['adapter'], $config['database']['params']);
 
-		
-		
-		
+
+		$this->table = $this->SetupTable($config);
+
+		$this->DisplayList();
+
+		//echo '<pre>'; print_r($this->DisplayList()); echo '</pre>';
+	}
+	
+	protected function SetupTable($config)
+	{
 		require_once "table.php";
 		
-		//'primary'=>'category_id'
-		$this->table = new Scaffold_Table(array('db'=>$this->db,'name' => $config['current_table']));
+		$setup['db'] = $this->db;
+		$setup['name'] = $config['current_table'];
 
+		// Pass user-defined custom table data
+		if (isset($config['tables'][$config['current_table']]))
+			$setup['custom'] = $config['tables'][$config['current_table']];
+
+		// Pass primary field name if it is given
+		if (isset($setup['custom']['primary']))
+			$setup['primary'] = $setup['custom']['primary'];
 		
-		echo '<pre>'; print_r($this->table->info()); echo '</pre>';
+		return new Scaffold_Table($setup);
+	}
+	
+	public function DisplayList()
+	{
+		$this->view->rows = $this->table->fetchAll($this->table->select())->toArray();
+
+		$this->view->fields = $this->table->GetFields();
+		$this->view->primary = $this->table->GetPrimary();
+		$this->view->title = $this->table->GetLabel();
+
+		echo $this->view->render('list.php');
+		
+		
+		//->order($order)->limit($count, $offset);
+		
+		
+		/*
+		
+		$table = new Bugs();
+
+$select = $table->select();
+$select->from($table,
+              array('COUNT(reported_by) as `count`', 'reported_by'))
+       ->where('bug_status = ?', 'NEW')
+       ->group('reported_by');
+
+$rows = $table->fetchAll($select);
+		
+		
+		*/
+		
+		
 	}
 
 /*
