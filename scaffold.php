@@ -57,8 +57,14 @@ class Scaffold
 				if ( ! empty($this->id)) echo $this->GetEdit($this->id);
 				else echo $this->GetAdd();
 				break;
+			case 'do_edit':
+				echo $this->Update(); break;
+
 			case 'add':
 				echo $this->GetAdd(); break;
+			case 'do_add':
+				echo $this->Insert(); break;
+				
 			default:
 				echo $this->GetList();
 		}
@@ -119,8 +125,9 @@ class Scaffold
 		$this->view->fields = $this->table->GetFields();
 		$this->view->primary = $this->table->GetPrimary();
 		$this->view->title = $this->table->GetLabel();
+		$this->view->action = 'do_'.$this->action;
 
-		return $this->view->render('add.php');
+		return $this->view->render('form.php');
 	}
 	
 	public function GetEdit($id)
@@ -128,11 +135,56 @@ class Scaffold
 		$this->view->fields = $this->table->GetFields();
 		$this->view->primary = $this->table->GetPrimary();
 		$this->view->title = $this->table->GetLabel();
+		$this->view->action = 'do_'.$this->action;
 
-		$select = $this->table->select()->where("{$this->view->primary} = ?", $this->id);
+		$select = $this->table->select()->where("{$this->view->primary} = ?", $id);
 		$this->view->data = $this->table->fetchRow($select)->toArray();
 
-		return $this->view->render('edit.php');
+		return $this->view->render('form.php');
+	}
+
+	protected function Insert()
+	{
+		$this->view->fields = $this->table->GetFields();
+		
+		// Do validation and filtering here, if needed
+		foreach ($this->view->fields as $key => $value)
+			if (isset($_POST[$key]))
+				$data[$key] = $_POST[$key];
+
+		$id = $this->table->insert($data);
+
+		if ($id) echo $this->GetEdit($id);
+		else
+		{
+			$this->view->error = "Could not save!";
+			echo $this->GetAdd();
+		}
+
+		
+	}
+
+	protected function Update()
+	{
+		$this->view->fields = $this->table->GetFields();
+		$this->view->primary = $this->table->GetPrimary();
+		
+		// Do validation and filtering here, if needed
+		foreach ($this->view->fields as $key => $value)
+			if (isset($_POST[$key]))
+				$data[$key] = $_POST[$key];
+		
+		$this->id = $data[$this->view->primary];
+
+		$where = $this->table->getAdapter()->quoteInto("{$this->view->primary} = ?", $this->id);
+		$count = $this->table->update($data, $where);
+
+		if ($count) echo $this->GetEdit($this->id);
+		else
+		{
+			$this->view->error = "Could not save!";
+			echo $this->GetEdit($this->id);
+		}
 	}
 
 /*
