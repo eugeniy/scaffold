@@ -13,7 +13,12 @@ class Scaffold
 {
 	protected $db;
 	protected $table;
+	
+	protected $page = 1;
+	protected $itemsPerPage = 10;
 
+	protected $id;
+	protected $action = 'list';
 
 	public function __construct($config)
 	{		
@@ -25,18 +30,41 @@ class Scaffold
 		$this->view = new Zend_View();
 		$this->view->setBasePath('./views');
 		
-		Zend_Paginator::setDefaultScrollingStyle('Sliding');
-		Zend_View_Helper_PaginationControl::setDefaultViewPartial('pagination.php');
-		
 		// Connect to the database
 		$this->db = Zend_Db::factory($config['database']['adapter'], $config['database']['params']);
 
 
 		$this->table = $this->SetupTable($config);
 
-		$this->DisplayList();
+		if (isset($config['pagination']['items_per_page']))
+			$this->itemsPerPage = (int) $config['pagination']['items_per_page'];
 
-		//echo '<pre>'; print_r($this->DisplayList()); echo '</pre>';
+
+		// Process request data
+		if (isset($_GET['page']) && is_numeric($_GET['page']))
+			$this->page = (int) $_GET['page'];
+
+		if (isset($_GET['id']) && is_numeric($_GET['id']))
+			$this->id = (int) $_GET['id'];
+		
+		if (isset($_GET['action']))
+			$this->action = $_GET['action'];
+
+
+		switch ($this->action)
+		{
+			case 'edit':
+				if ( ! empty($this->id)) echo $this->GetEdit($this->id);
+				else echo $this->GetAdd();
+				break;
+			case 'add':
+				echo $this->GetAdd(); break;
+			default:
+				echo $this->GetList();
+		}
+
+		//echo '<pre>'; print_r($this->table); echo '</pre>';
+
 	}
 	
 	protected function SetupTable($config)
@@ -57,33 +85,54 @@ class Scaffold
 		return new Scaffold_Table($setup);
 	}
 	
-	public function DisplayList()
+	protected function SetupPagination($select)
 	{
-		$select = $this->table->select();
-		$this->view->rows = $this->table->fetchAll()->toArray();
+		Zend_Paginator::setDefaultScrollingStyle('Sliding');
+		Zend_View_Helper_PaginationControl::setDefaultViewPartial('pagination.php');
+		
+		$paginator = new Zend_Paginator(new Zend_Paginator_Adapter_DbTableSelect($select));
+		
+		$paginator->setItemCountPerPage($this->itemsPerPage);
+		//$paginator->setPageRange(5);
+		$paginator->setCurrentPageNumber($this->page);
+		
+		return $this->view->paginationControl($paginator);
+	}
+	
+	public function GetList()
+	{
+		$offset = $this->itemsPerPage * ($this->page - 1);
+		$select = $this->table->select()->limit($this->itemsPerPage, $offset);
+		$this->view->rows = $select->query()->fetchAll();
 
 		$this->view->fields = $this->table->GetFields();
 		$this->view->primary = $this->table->GetPrimary();
 		$this->view->title = $this->table->GetLabel();
 		
-		$paginator = new Zend_Paginator(new Zend_Paginator_Adapter_DbTableSelect($select));
-		
-		$paginator->setItemCountPerPage(5);
-		//$paginator->setPageRange(5);
-		$paginator->setCurrentPageNumber(2);
-		
-		$this->view->pagination = $this->view->paginationControl($paginator);
+		$this->view->pagination = $this->SetupPagination($select);
 
-		echo $this->view->render('list.php');
-		
-		
-		
-		//->order($order)->limit($count, $offset);
-		
-		
+		return $this->view->render('list.php');
+	}
+	
+	public function GetAdd()
+	{
+		$this->view->fields = $this->table->GetFields();
+		$this->view->primary = $this->table->GetPrimary();
+		$this->view->title = $this->table->GetLabel();
 
-		
-		
+		return $this->view->render('add.php');
+	}
+	
+	public function GetEdit($id)
+	{
+		$this->view->fields = $this->table->GetFields();
+		$this->view->primary = $this->table->GetPrimary();
+		$this->view->title = $this->table->GetLabel();
+
+		$select = $this->table->select()->where("{$this->view->primary} = ?", $this->id);
+		$this->view->data = $this->table->fetchRow($select)->toArray();
+
+		return $this->view->render('edit.php');
 	}
 
 /*

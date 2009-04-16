@@ -21,6 +21,9 @@ class Scaffold_Table extends Zend_Db_Table_Abstract
 	public function GetPrimary() { return current($this->_primary); }
 	public function GetFields()
 	{
+		// Load column data if not loaded already
+		if (null === $this->_cols) $this->_getCols();
+		
 		foreach ($this->_cols as $col)
 			$output[$col] = isset($this->fields[$col]) ? $this->fields[$col] : array();
 		return $output;

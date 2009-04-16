@@ -2,7 +2,7 @@
  
 <table cellpadding="0" cellspacing="0" border="0">
  
-<caption><span class="actions"><a href="<?php /*echo url::site("scaffold/{$table}/add");*/ ?>">Add</a></span><?php echo $this->title; ?></caption>
+<caption><span class="actions"><a href="?action=add">Add</a></span><?php echo $this->title; ?></caption>
  
 <thead><tr>
  
@@ -21,8 +21,8 @@
 <td><?php echo $field; ?></td>
 <?php endforeach; ?>
  
-<td><a href="?a=edit&amp;id=<?php echo $row[$this->primary]; ?>">Edit</a></td>
-<td><a href="?a=delete&amp;id=<?php echo $row[$this->primary]; ?>">Delete</a></td>
+<td><a href="?action=edit&amp;id=<?php echo $row[$this->primary]; ?>">Edit</a></td>
+<td><a href="?action=delete&amp;id=<?php echo $row[$this->primary]; ?>">Delete</a></td>
  
 </tr>
 <?php endforeach; ?>
