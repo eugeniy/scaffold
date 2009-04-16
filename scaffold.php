@@ -17,6 +17,7 @@ class Scaffold
 	protected $page = 1;
 	protected $itemsPerPage = 10;
 
+	protected $primary;
 	protected $id;
 	protected $action = 'list';
 
@@ -35,41 +36,41 @@ class Scaffold
 
 
 		$this->table = $this->SetupTable($config);
+		$this->primary = $this->table->GetPrimary();
 
 		if (isset($config['pagination']['items_per_page']))
 			$this->itemsPerPage = (int) $config['pagination']['items_per_page'];
 
 
-		// Process request data
-		if (isset($_GET['page']) && is_numeric($_GET['page']))
-			$this->page = (int) $_GET['page'];
+		echo $this->Router();
 
-		if (isset($_GET['id']) && is_numeric($_GET['id']))
-			$this->id = (int) $_GET['id'];
-		
+		//echo '<pre>'; print_r($this->table); echo '</pre>';
+
+	}
+	
+	protected function Router()
+	{
 		if (isset($_GET['action']))
 			$this->action = $_GET['action'];
-
+		
+		if (isset($_GET['page']) && is_numeric($_GET['page']))
+				$this->page = (int) $_GET['page'];
+		
+		if (isset($_REQUEST[$this->primary]) && is_numeric($_REQUEST[$this->primary]))
+			$this->id = (int) $_REQUEST[$this->primary];
 
 		switch ($this->action)
 		{
-			case 'edit':
-				if ( ! empty($this->id)) echo $this->GetEdit($this->id);
-				else echo $this->GetAdd();
-				break;
-			case 'do_edit':
-				echo $this->Update(); break;
-
 			case 'add':
-				echo $this->GetAdd(); break;
-			case 'do_add':
-				echo $this->Insert(); break;
-				
+			case 'edit':
+				return $this->GetForm();
+			
+			case 'save':
+				return $this->Save();
+			
 			default:
-				echo $this->GetList();
+				return $this->GetList();
 		}
-
-		//echo '<pre>'; print_r($this->table); echo '</pre>';
 
 	}
 	
@@ -112,175 +113,54 @@ class Scaffold
 		$this->view->rows = $select->query()->fetchAll();
 
 		$this->view->fields = $this->table->GetFields();
-		$this->view->primary = $this->table->GetPrimary();
+		$this->view->primary = $this->primary;
 		$this->view->title = $this->table->GetLabel();
 		
 		$this->view->pagination = $this->SetupPagination($select);
 
 		return $this->view->render('list.php');
 	}
-	
-	public function GetAdd()
+
+	public function GetForm()
 	{
 		$this->view->fields = $this->table->GetFields();
-		$this->view->primary = $this->table->GetPrimary();
+		$this->view->primary = $this->primary;
 		$this->view->title = $this->table->GetLabel();
-		$this->view->action = 'do_'.$this->action;
+		$this->view->action = 'save';
 
+		if (isset($this->id))
+		{
+			$select = $this->table->select()->where("{$this->primary} = ?", $this->id);
+			$this->view->data = $this->table->fetchRow($select)->toArray();
+		}
+		
 		return $this->view->render('form.php');
 	}
 	
-	public function GetEdit($id)
+	protected function Save()
 	{
 		$this->view->fields = $this->table->GetFields();
-		$this->view->primary = $this->table->GetPrimary();
-		$this->view->title = $this->table->GetLabel();
-		$this->view->action = 'do_'.$this->action;
-
-		$select = $this->table->select()->where("{$this->view->primary} = ?", $id);
-		$this->view->data = $this->table->fetchRow($select)->toArray();
-
-		return $this->view->render('form.php');
-	}
-
-	protected function Insert()
-	{
-		$this->view->fields = $this->table->GetFields();
+		$this->view->primary = $this->primary;
 		
 		// Do validation and filtering here, if needed
 		foreach ($this->view->fields as $key => $value)
 			if (isset($_POST[$key]))
 				$data[$key] = $_POST[$key];
 
-		$id = $this->table->insert($data);
-
-		if ($id) echo $this->GetEdit($id);
+		if (isset($this->id))
+		{
+			$where = $this->table->getAdapter()->quoteInto("{$this->primary} = ?", $this->id);
+			if ( ! $this->table->update($data, $where))
+				$this->view->error = "Could not save!";
+		}
 		else
 		{
-			$this->view->error = "Could not save!";
-			echo $this->GetAdd();
+			$id = $this->table->insert($data);
+			if ($id) $this->id = $id;
+			else $this->view->error = "Could not save!";
 		}
-
 		
+		return $this->GetForm();
 	}
 
-	protected function Update()
-	{
-		$this->view->fields = $this->table->GetFields();
-		$this->view->primary = $this->table->GetPrimary();
-		
-		// Do validation and filtering here, if needed
-		foreach ($this->view->fields as $key => $value)
-			if (isset($_POST[$key]))
-				$data[$key] = $_POST[$key];
-		
-		$this->id = $data[$this->view->primary];
-
-		$where = $this->table->getAdapter()->quoteInto("{$this->view->primary} = ?", $this->id);
-		$count = $this->table->update($data, $where);
-
-		if ($count) echo $this->GetEdit($this->id);
-		else
-		{
-			$this->view->error = "Could not save!";
-			echo $this->GetEdit($this->id);
-		}
-	}
-
-/*
-
-
-    
-    $this->view = new Zend_View();
-    $this->view->setBasePath('./views');
- 
- 
-  }
- 
- 
-  public function DisplayList()
-  {    
-    
-    $this->view->title = 'List';
-    $this->view->columns = $this->columns;
-    
-    $this->view->rows = $this->db->select()->from($this->table)->query()->fetchAll();
-    
-    echo $this->view->render('list.php');
-  }
-  
-
-
-
-
-
-
-
-
-
-
-
-
-  protected $pdo;
-  protected $table;
-  
-  protected $columns = null;
-  //protected $driver;
- 
- 
-  public function __construct($pdo, $table)
-  {
-    $this->pdo = $pdo;
-    $this->table = $table;
-    
-    //$this->driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
-  }
-  
- 
- 
-  public function DisplayList()
-  {
-    echo "<table>\n";
- 
-    $list = $this->pdo->prepare("SELECT * FROM `{$this->table}`");
-    $list->execute();
-    $list->setFetchMode(PDO::FETCH_ASSOC);
-    
-    foreach ($list->fetchAll() as $row)
-    {
-      // On the first pass, set and display columns
-      if ($this->columns === null)
-      {
-        $this->SetColumns($row);
-        echo '<tr>';
-        foreach ($this->columns as $key => $value)
-          echo "<th>{$key}</th>";
-        echo "</tr>\n";
-      }
-    
-      // Display the rest of records
-      echo '<tr>';
-      
-      foreach ($row as $key => $value)
-        echo "<td>{$value}</td>";
-        
-      echo "</tr>\n";
-    }
-    
-    echo "</table>\n";
-  }
- 
- 
-  protected function SetColumns($keys)
-  {
-    $this->columns = array_fill_keys(array_keys($keys), null);
-  }
-  
- 
- 
- 
-  */
- 
- 
-  
 }

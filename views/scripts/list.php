@@ -21,8 +21,8 @@
 <td><?php echo $field; ?></td>
 <?php endforeach; ?>
  
-<td><a href="?action=edit&amp;id=<?php echo $row[$this->primary]; ?>">Edit</a></td>
-<td><a href="?action=delete&amp;id=<?php echo $row[$this->primary]; ?>">Delete</a></td>
+<td><a href="?action=edit&amp;<?php echo $this->primary; ?>=<?php echo $row[$this->primary]; ?>">Edit</a></td>
+<td><a href="?action=delete&amp;<?php echo $this->primary; ?>=<?php echo $row[$this->primary]; ?>">Delete</a></td>
  
 </tr>
 <?php endforeach; ?>
