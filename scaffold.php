@@ -16,6 +16,7 @@ class Scaffold
 	
 	protected $page = 1;
 	protected $itemsPerPage = 10;
+	protected $order;
 
 	protected $primary;
 	protected $id;
@@ -61,6 +62,9 @@ class Scaffold
 	{
 		if (isset($_GET['action']))
 			$this->action = $_GET['action'];
+			
+		if (isset($_GET['order']))
+			$this->order = $_GET['order'];
 		
 		if (isset($_GET['page']) && is_numeric($_GET['page']))
 				$this->page = (int) $_GET['page'];
@@ -155,13 +159,29 @@ class Scaffold
 	
 	public function GetList()
 	{
-		$offset = $this->itemsPerPage * ($this->page - 1);
-		$select = $this->table->select()->limit($this->itemsPerPage, $offset);
-		$this->view->rows = $select->query()->fetchAll();
-
 		$this->view->fields = $this->table->GetFields();
 		$this->view->primary = $this->primary;
 		$this->view->title = $this->table->GetLabel();
+
+		$offset = $this->itemsPerPage * ($this->page - 1);
+		$select = $this->table->select()->limit($this->itemsPerPage, $offset);
+		
+		if ( ! empty($this->order))
+		{
+			echo '<pre>'; print_r($this->order); echo '</pre>';
+			
+			$parts = explode(' ', $this->order);
+			if (isset($parts[0]) && isset($parts[1]))
+			{
+				$orderField = array_key_exists($parts[0], $this->view->fields) ? $parts[0] : $this->primary;
+				$orderDirection = ($parts[1] == 'DESC') ? 'DESC' : 'ASC';
+				$select->order("{$orderField} {$orderDirection}");
+			}
+		}
+		
+		$this->view->rows = $select->query()->fetchAll();
+
+
 		
 		$this->view->pagination = $this->SetupPagination($select);
 
