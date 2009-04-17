@@ -18,7 +18,14 @@ class Scaffold_Table extends Zend_Db_Table_Abstract
 
 	// Accessors
 	public function GetLabel() { return $this->label; }
-	public function GetPrimary() { return current($this->_primary); }
+	public function GetPrimary()
+	{
+		if (null === $this->_primary) $this->_setupPrimaryKey();
+
+		if  (is_array($this->_primary) OR is_object($this->_primary))
+			return current($this->_primary);
+		else return $this->_primary;
+	}
 	public function GetFields()
 	{
 		// Load column data if not loaded already

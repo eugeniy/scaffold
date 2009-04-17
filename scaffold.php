@@ -11,7 +11,7 @@
 */
 class Scaffold
 {
-	protected $db;
+	public static $db;
 	protected $table;
 	
 	protected $page = 1;
@@ -21,34 +21,43 @@ class Scaffold
 	protected $id;
 	protected $action = 'list';
 
-	public function __construct($config)
-	{		
-		// Load Zend
-		set_include_path(get_include_path() . PATH_SEPARATOR . $config['zend_path']);
-		require_once "Zend/Loader.php";
-		Zend_Loader::registerAutoload();
-		
-		$this->view = new Zend_View();
-		$this->view->setBasePath('./views');
-		
-		// Connect to the database
-		$this->db = Zend_Db::factory($config['database']['adapter'], $config['database']['params']);
+	public function __construct($config = array())
+	{
+		try
+		{
+			// Set the PATH to Zend
+			if (isset($config['zend_path']) && is_dir($config['zend_path']))
+				set_include_path(get_include_path().PATH_SEPARATOR.$config['zend_path']);
+			
+			// Load Zend Framework
+			if (@include('Zend/Loader.php')) Zend_Loader::registerAutoload();
+			else throw new Exception('Required Zend Framework cannot be loaded.');
+	
+			$this->view = new Zend_View();
+			$this->view->setBasePath('./views');
+
+			// Connect to the database
+			if (isset($config['database']) && $this->SetupDatabase($config['database']))
+				// Setup the table
+				$this->SetupTable($config);
 
 
-		$this->table = $this->SetupTable($config);
-		$this->primary = $this->table->GetPrimary();
-
-		if (isset($config['pagination']['items_per_page']))
-			$this->itemsPerPage = (int) $config['pagination']['items_per_page'];
-
-
-		echo $this->Router();
-
-		//echo '<pre>'; print_r($this->table); echo '</pre>';
-
+			if (isset($config['pagination']['items_per_page']))
+				$this->itemsPerPage = (int) $config['pagination']['items_per_page'];
+	
+	
+			if ( ! empty($config['auto_build']))
+				echo $this->Build();
+	
+			//echo '<pre>'; print_r($this->table); echo '</pre>';
+		}
+		catch (Exception $e)
+		{
+			self::GetError('Unknown error.', $e);
+		}
 	}
 	
-	protected function Router()
+	public function Build()
 	{
 		if (isset($_GET['action']))
 			$this->action = $_GET['action'];
@@ -74,24 +83,62 @@ class Scaffold
 
 	}
 	
-	protected function SetupTable($config)
+	
+	public static function GetError($message, $exception=null)
 	{
-		require_once "table.php";
-		
-		$setup['db'] = $this->db;
-		$setup['name'] = $config['current_table'];
-
-		// Pass user-defined custom table data
-		if (isset($config['tables'][$config['current_table']]))
-			$setup['custom'] = $config['tables'][$config['current_table']];
-
-		// Pass primary field name if it is given
-		if (isset($setup['custom']['primary']))
-			$setup['primary'] = $setup['custom']['primary'];
-		
-		return new Scaffold_Table($setup);
+		echo "<div class=\"scaffold-error\">{$message}</div>";
+		return false;
 	}
 	
+	
+	public function SetupDatabase($config)
+	{
+		try
+		{
+			if ( ! isset($config['adapter']) OR ! isset($config['params']))
+				throw new Exception('Connection adapter or parameters are missing.');
+
+			self::$db = Zend_Db::factory($config['adapter'], $config['params']);
+		}
+		catch (Exception $e)
+		{
+			return self::GetError('Database connection failed.', $e);
+		}
+		return true;
+	}
+	
+	public function SetupTable($config)
+	{
+		require_once 'includes/table.php';
+		try
+		{
+			if ( ! isset(self::$db))
+				throw new Exception('Database connection is not setup.');
+			
+			if ( ! isset($config['current_table']))
+				throw new Exception('Current table name is not given.');
+	
+			$setup['db'] = self::$db;
+			$setup['name'] = $config['current_table'];
+	
+			// Pass user-defined custom table data
+			if (isset($config['tables'][$config['current_table']]))
+				$setup['custom'] = $config['tables'][$config['current_table']];
+	
+			// Pass primary field name if it is given
+			if (isset($setup['custom']['primary']))
+				$setup['primary'] = $setup['custom']['primary'];
+			
+			$this->table = new Scaffold_Table($setup);
+			$this->primary = $this->table->GetPrimary();
+		}
+		catch (Exception $e)
+		{
+			return self::GetError('Failed to load the table.', $e);
+		}
+		return true;
+	}
+
 	protected function SetupPagination($select)
 	{
 		Zend_Paginator::setDefaultScrollingStyle('Sliding');

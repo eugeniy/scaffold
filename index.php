@@ -38,10 +38,6 @@ $config['zend_path'] = './includes';
 
 
 
-
-
-
-
 $config['database'] = array(
 	'adapter' => 'Mysqli',
 	'params' => array(
@@ -52,6 +48,7 @@ $config['database'] = array(
 	)
 );
 
+//$config['auto_build'] = true;
 
 $config['current_table'] = 'products';
 
@@ -59,7 +56,7 @@ $config['current_table'] = 'products';
 $config['tables']['products'] = array(
 	
 	'label' => 'Products',
-	'primary' => 'id',
+	//'primary' => 'id',
 
 	'fields' => array(
 		'id' => array(
@@ -73,10 +70,10 @@ $config['tables']['products'] = array(
 			'label' => 'Name',
 			'type' => 'text'
 		),
-		/*'description' => array(
+		'description' => array(
 			'label' => 'Description',
 			'type' => 'text'
-		),*/
+		),
 		'image' => array(
 			'label' => 'Image',
 			'type' => 'text',
@@ -93,6 +90,8 @@ $config['tables']['products'] = array(
 
  
 $test = new Scaffold($config);
+
+echo $test->Build();
 
  
 //$test->DisplayList();
