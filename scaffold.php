@@ -16,7 +16,7 @@ class Scaffold
 	
 	protected $page = 1;
 	protected $itemsPerPage = 10;
-	protected $order;
+	protected $sort;
 
 	protected $primary;
 	protected $id;
@@ -63,8 +63,8 @@ class Scaffold
 		if (isset($_GET['action']))
 			$this->action = $_GET['action'];
 			
-		if (isset($_GET['order']))
-			$this->order = $_GET['order'];
+		if (isset($_GET['sort']))
+			$this->sort = $_GET['sort'];
 		
 		if (isset($_GET['page']) && is_numeric($_GET['page']))
 				$this->page = (int) $_GET['page'];
@@ -166,23 +166,26 @@ class Scaffold
 		$offset = $this->itemsPerPage * ($this->page - 1);
 		$select = $this->table->select()->limit($this->itemsPerPage, $offset);
 		
-		if ( ! empty($this->order))
+		// Default Sorting
+		foreach ($this->view->fields as $key => $value)
+			if ( ! isset($value['sortable']) OR $value['sortable'] !== false)
+				$sortable[$key] = "{$key}+asc";
+
+		if ( ! empty($this->sort))
 		{
-			echo '<pre>'; print_r($this->order); echo '</pre>';
-			
-			$parts = explode(' ', $this->order);
-			if (isset($parts[0]) && isset($parts[1]))
+			$parts = explode(' ', $this->sort);
+			if (array_key_exists($parts[0], $sortable) && isset($parts[1]))
 			{
-				$orderField = array_key_exists($parts[0], $this->view->fields) ? $parts[0] : $this->primary;
-				$orderDirection = ($parts[1] == 'DESC') ? 'DESC' : 'ASC';
-				$select->order("{$orderField} {$orderDirection}");
+				$direction = ($parts[1] == 'desc') ? 'desc' : 'asc';
+				$select->order("{$parts[0]} {$direction}");
+				
+				// Switch the direction for the output
+				$sortable[$parts[0]] = ($direction == 'desc') ? "{$parts[0]}+asc" : "{$parts[0]}+desc";
 			}
 		}
+		$this->view->sortable = empty($sortable) ? array() : $sortable;
 		
 		$this->view->rows = $select->query()->fetchAll();
-
-
-		
 		$this->view->pagination = $this->SetupPagination($select);
 
 		return $this->view->render('list.php');

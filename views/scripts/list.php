@@ -7,7 +7,7 @@
 <thead><tr>
  
 <?php foreach ($this->fields as $key => $value): ?>
-<th><?php if (isset($sortable[$key])) echo "<a href=\"?sort={$sortable[$key]}\">"; ?><?php echo empty($value['label']) ? $key : $value['label']; ?><?php if (isset($sortable[$key])) echo "</a>"; ?></th>
+<th><?php if (isset($this->sortable[$key])) echo "<a href=\"?sort={$this->sortable[$key]}\">"; ?><?php echo empty($value['label']) ? $key : $value['label']; ?><?php if (isset($this->sortable[$key])) echo "</a>"; ?></th>
 <?php endforeach; ?>
  
 <th colspan="2">Actions</th>
