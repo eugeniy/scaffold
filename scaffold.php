@@ -93,6 +93,20 @@ class Scaffold
 		echo "<div class=\"scaffold-error\">{$message}</div>";
 		return false;
 	}
+
+
+	public static function Url($attr = array(), $appendGetAttrs = false)
+	{
+		if ($appendGetAttrs)
+			foreach (explode('&', $_SERVER['QUERY_STRING']) as $arg)
+			{
+				$parts = explode('=', $arg, 2);
+				if ( ! isset($attr[$parts[0]]) && isset($parts[1]))
+					$attr[$parts[0]] =  urldecode($parts[1]);
+			}
+
+		return '?'.http_build_query($attr, '', '&amp;');	
+	}
 	
 	
 	public function SetupDatabase($config)
@@ -169,7 +183,7 @@ class Scaffold
 		// Default Sorting
 		foreach ($this->view->fields as $key => $value)
 			if ( ! isset($value['sortable']) OR $value['sortable'] !== false)
-				$sortable[$key] = "{$key}+asc";
+				$sortable[$key] = "{$key} asc";
 
 		if ( ! empty($this->sort))
 		{
@@ -180,7 +194,7 @@ class Scaffold
 				$select->order("{$parts[0]} {$direction}");
 				
 				// Switch the direction for the output
-				$sortable[$parts[0]] = ($direction == 'desc') ? "{$parts[0]}+asc" : "{$parts[0]}+desc";
+				$sortable[$parts[0]] = ($direction == 'desc') ? "{$parts[0]} asc" : "{$parts[0]} desc";
 			}
 		}
 		$this->view->sortable = empty($sortable) ? array() : $sortable;

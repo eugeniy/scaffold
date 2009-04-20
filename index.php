@@ -35,7 +35,6 @@ require_once 'config.php';
 
 
 $test = new Scaffold($config);
-
  
 ?>
  

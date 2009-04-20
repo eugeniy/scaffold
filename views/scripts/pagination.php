@@ -6,7 +6,7 @@ See http://developer.yahoo.com/ypatterns/pattern.php?pattern=searchpagination
 <div class="paginationControl">
 <!-- Previous page link -->
 <?php if (isset($this->previous)): ?>
-  <a href="?page=<?php echo $this->previous; ?>">
+  <a href="<?php echo Scaffold::Url(array('page'=>$this->previous), true); ?>">
     &lt; Previous
   </a> |
 <?php else: ?>
@@ -16,7 +16,7 @@ See http://developer.yahoo.com/ypatterns/pattern.php?pattern=searchpagination
 <!-- Numbered page links -->
 <?php foreach ($this->pagesInRange as $page): ?>
   <?php if ($page != $this->current): ?>
-    <a href="?page=<?php echo $page; ?>">
+    <a href="<?php echo Scaffold::Url(array('page'=>$page), true); ?>">
         <?php echo $page; ?>
     </a> |
   <?php else: ?>
@@ -26,7 +26,7 @@ See http://developer.yahoo.com/ypatterns/pattern.php?pattern=searchpagination
 
 <!-- Next page link -->
 <?php if (isset($this->next)): ?>
-  <a href="?page=<?php echo $this->next; ?>">
+  <a href="<?php echo Scaffold::Url(array('page'=>$this->next), true); ?>">
     Next &gt;
   </a>
 <?php else: ?>
