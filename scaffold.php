@@ -36,6 +36,8 @@ class Scaffold
 	
 			$this->view = new Zend_View();
 			$this->view->setBasePath('./views');
+			$doctypeHelper = new Zend_View_Helper_Doctype();
+			$doctypeHelper->doctype('XHTML1_STRICT');
 
 			// Connect to the database
 			if (isset($config['database']) && $this->SetupDatabase($config['database']))

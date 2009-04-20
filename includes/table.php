@@ -18,6 +18,7 @@ class Scaffold_Table extends Zend_Db_Table_Abstract
 
 	// Accessors
 	public function GetLabel() { return $this->label; }
+	public function GetMeta() { return $this->_metadata; }
 	public function GetPrimary()
 	{
 		if (null === $this->_primary) $this->_setupPrimaryKey();
@@ -32,7 +33,19 @@ class Scaffold_Table extends Zend_Db_Table_Abstract
 		if (null === $this->_cols) $this->_getCols();
 		
 		foreach ($this->_cols as $col)
+		{
 			$output[$col] = isset($this->fields[$col]) ? $this->fields[$col] : array();
+			
+			// Try to detect field type automatically
+			if ( ! isset($output[$col]['type']))
+			{
+				if (isset($this->_metadata[$col]['DATA_TYPE']))
+					$output[$col]['type'] = 'auto_'.$this->_metadata[$col]['DATA_TYPE'];
+				else $output[$col]['type'] = '';
+			}
+			
+		}
+			
 		return $output;
 	}
 }
