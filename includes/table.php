@@ -4,6 +4,7 @@ class Scaffold_Table extends Zend_Db_Table_Abstract
 {
 	protected $label;
 	protected $fields;
+	protected $parents;
 	
 	public function __construct($config = array())
 	{
@@ -12,13 +13,22 @@ class Scaffold_Table extends Zend_Db_Table_Abstract
 
 		if (isset($config['custom']['fields']))
 			$this->fields = $config['custom']['fields'];
+			
+		if (isset($config['parents']))
+			$this->parents = $config['parents'];
 		
 		parent::__construct($config);
 	}
 
 	// Accessors
 	public function GetLabel() { return $this->label; }
+	public function GetName() { return $this->_name; }
 	public function GetMeta() { return $this->_metadata; }
+	public function GetParents() { return $this->parents; }
+	public function GetFieldParent($key)
+	{
+		return isset($this->parents[$key]) ? $this->parents[$key] : null;
+	}
 	public function GetPrimary()
 	{
 		if (null === $this->_primary) $this->_setupPrimaryKey();

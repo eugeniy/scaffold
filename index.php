@@ -34,6 +34,9 @@ require_once 'scaffold.php';
 require_once 'config.php';
 
 
+$config['current_table'] = isset($_GET['table']) ? $_GET['table'] : 'products';
+
+
 $test = new Scaffold($config);
  
 ?>

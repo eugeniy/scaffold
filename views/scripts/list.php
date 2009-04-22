@@ -21,12 +21,17 @@
  
 <?php foreach ($this->rows as $row): ?>
 <tr>
-<?php foreach ($row as $field): ?>
-<td><?php echo $field; ?></td>
+<?php foreach ($row as $key=>$field): ?>
+<td><?php
+
+	if (isset($this->fields[$key]['parent'])) echo '<a href="'.Scaffold::Url(array('table'=>$this->fields[$key]['parent'], 'action'=>'edit', 'id'=>$field))."\">{$field}</a>";
+	else echo $field;
+
+?></td>
 <?php endforeach; ?>
  
-<td><a href="<?php echo Scaffold::Url(array('action'=>'edit', $this->primary=>$row[$this->primary])); ?>">Edit</a></td>
-<td><a href="<?php echo Scaffold::Url(array('action'=>'delete', $this->primary=>$row[$this->primary])); ?>">Delete</a></td>
+<td><a href="<?php echo Scaffold::Url(array('action'=>'edit', 'id'=>$row[$this->primary])); ?>">Edit</a></td>
+<td><a href="<?php echo Scaffold::Url(array('action'=>'delete', 'id'=>$row[$this->primary])); ?>">Delete</a></td>
  
 </tr>
 <?php endforeach; ?>

@@ -41,8 +41,11 @@ class Scaffold
 
 			// Connect to the database
 			if (isset($config['database']) && $this->SetupDatabase($config['database']))
+			{
 				// Setup the table
-				$this->SetupTable($config);
+				$this->table =$this->SetupTable($config);
+				$this->primary = $this->table->GetPrimary();
+			}
 
 
 			if (isset($config['pagination']['items_per_page']))
@@ -52,7 +55,7 @@ class Scaffold
 			if ( ! empty($config['auto_build']))
 				echo $this->Build();
 	
-			//echo '<pre>'; print_r($this->table); echo '</pre>';
+			//echo '<pre>'; print_r($this->parents); echo '</pre>';
 		}
 		catch (Exception $e)
 		{
@@ -71,8 +74,8 @@ class Scaffold
 		if (isset($_GET['page']) && is_numeric($_GET['page']))
 				$this->page = (int) $_GET['page'];
 		
-		if (isset($_REQUEST[$this->primary]) && is_numeric($_REQUEST[$this->primary]))
-			$this->id = (int) $_REQUEST[$this->primary];
+		if (isset($_REQUEST['id']) && is_numeric($_REQUEST['id']))
+			$this->id = (int) $_REQUEST['id'];
 
 		switch ($this->action)
 		{
@@ -93,6 +96,7 @@ class Scaffold
 	public static function GetError($message, $exception=null)
 	{
 		echo "<div class=\"scaffold-error\">{$message}</div>";
+		echo '<pre>'; print_r($exception->getMessage()); echo '</pre>';
 		return false;
 	}
 
@@ -127,7 +131,7 @@ class Scaffold
 		return true;
 	}
 	
-	public function SetupTable($config)
+	public function SetupTable($config, $depth = 1)
 	{
 		require_once 'includes/table.php';
 		try
@@ -148,15 +152,22 @@ class Scaffold
 			// Pass primary field name if it is given
 			if (isset($setup['custom']['primary']))
 				$setup['primary'] = $setup['custom']['primary'];
+				
+			// Set-up parent tables
+			if (isset($setup['custom']['fields']))
+				foreach ($setup['custom']['fields'] as $key => $value)
+					if (isset($value['parent']))
+					{
+						$config['current_table'] = $value['parent']['table'];
+						$setup['parents'][$key] = $this->SetupTable($config, --$depth);
+					}
 			
-			$this->table = new Scaffold_Table($setup);
-			$this->primary = $this->table->GetPrimary();
+			return new Scaffold_Table($setup);
 		}
 		catch (Exception $e)
 		{
-			return self::GetError('Failed to load the table.', $e);
+			return self::GetError("Failed to load the table {$config['current_table']}.", $e);
 		}
-		return true;
 	}
 
 	protected function SetupPagination($select)
@@ -177,7 +188,7 @@ class Scaffold
 	{
 		$this->view->fields = $this->table->GetFields();
 		$this->view->primary = $this->primary;
-		$this->view->title = $this->table->GetLabel();
+		$this->view->title = $this->table->GetLabel();	
 
 		$offset = $this->itemsPerPage * ($this->page - 1);
 		$select = $this->table->select()->limit($this->itemsPerPage, $offset);
@@ -187,6 +198,7 @@ class Scaffold
 			if ( ! isset($value['sortable']) OR $value['sortable'] !== false)
 				$sortable[$key] = "{$key} asc";
 
+			// User specified sorting
 		if ( ! empty($this->sort))
 		{
 			$parts = explode(' ', $this->sort);
@@ -194,7 +206,6 @@ class Scaffold
 			{
 				$direction = ($parts[1] == 'desc') ? 'desc' : 'asc';
 				$select->order("{$parts[0]} {$direction}");
-				
 				// Switch the direction for the output
 				$sortable[$parts[0]] = ($direction == 'desc') ? "{$parts[0]} asc" : "{$parts[0]} desc";
 			}
