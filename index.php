@@ -28,16 +28,25 @@
  
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
+
+
+require_once 'view.php';
+
+
+
+$view = new Scaffold_View('test.php');
+$view->name = 'tro"ut';
+echo $view;
+
  
- 
-require_once 'scaffold.php';
-require_once 'config.php';
+//require_once 'scaffold.php';
+//require_once 'config.php';
 
 
-$config['current_table'] = isset($_GET['table']) ? $_GET['table'] : 'products';
+//$config['current_table'] = isset($_GET['table']) ? $_GET['table'] : 'products';
 
 
-$test = new Scaffold($config);
+//$test = new Scaffold($config);
  
 ?>
  
