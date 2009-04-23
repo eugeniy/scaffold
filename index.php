@@ -38,10 +38,9 @@ require_once 'pagination.php';
 //$view->name = 'tro"ut';
 //echo $view;
 
-//$page = new Scaffold_Pagination(1234, 20);
-echo Scaffold::Url('/sort/name+asc/page/1');
+$page = new Scaffold_Pagination(1234, $_GET['page']);
 
- 
+echo $page;
 
 //require_once 'config.php';
 
