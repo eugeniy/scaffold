@@ -6,11 +6,15 @@ class Scaffold_View
 	protected $_file = null;
 	protected $_data = array();
 
-	public function __construct($name = null)
+	public function __construct($name = null, $data = null)
 	{
-		if (is_string($name) AND $name !== '')
-			if (is_readable($this->_path.DIRECTORY_SEPARATOR.$name))
-				$this->_file = $this->_path.DIRECTORY_SEPARATOR.$name;
+		$this->SetFile($name);
+		$this->SetData($data);
+	}
+	
+	public static function Factory($name = null, $data = null)
+	{
+		return new Scaffold_View($name, $data);
 	}
 
 	public function Render()
@@ -32,11 +36,33 @@ class Scaffold_View
 	{
 		return htmlentities($value);
 	}
-
-	public function SetPath($value)
+	
+	// Chainable
+	public function SetData($data)
 	{
-		if (is_dir($value))
-			$this->_path = $value;
+		if (is_array($data) AND ! empty($data))
+			$this->_data = array_merge($this->_data, $data);
+		return $this;
+	}
+
+	// Chainable
+	public function SetPath($path)
+	{
+		if (is_string($path) AND is_dir($path))
+			$this->_path = $path;
+		return $this;
+	}
+
+	// Chainable
+	public function SetFile($basename)
+	{
+		if (is_string($basename))
+		{
+			$file = $this->_path.DIRECTORY_SEPARATOR.$basename;
+			if (is_file($file) AND is_readable($file))
+				$this->_file = $file;
+		}
+		return $this;
 	}
 
 	public function __toString()

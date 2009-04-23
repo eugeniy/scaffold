@@ -104,7 +104,7 @@ class Scaffold
 	}
 
 
-	public static function Url($attr = array(), $appendGetAttrs = false)
+	public static function OldUrl($attr = array(), $appendGetAttrs = false)
 	{
 		if ($appendGetAttrs)
 			foreach (explode('&', $_SERVER['QUERY_STRING']) as $arg)
@@ -116,7 +116,29 @@ class Scaffold
 
 		return '?'.http_build_query($attr, '', '&amp;');	
 	}
-	
+
+
+	public static function Url($attr, $appendGetAttrs=false)
+	{
+		$search = '/\/([a-z0-9]*)/i';
+		if (is_string($attr) AND preg_match($search, $attr, $sections))
+		{
+			echo '<pre>'; print_r($sections); echo '</pre>';
+			//$sections = explode('/', $attrString);
+		}
+		
+		/*
+		if ($appendGetAttrs)
+			foreach (explode('&', $_SERVER['QUERY_STRING']) as $arg)
+			{
+				$parts = explode('=', $arg, 2);
+				if ( ! isset($attr[$parts[0]]) && isset($parts[1]))
+					$attr[$parts[0]] =  urldecode($parts[1]);
+			}
+
+		return '?'.http_build_query($attr, '', '&amp;');
+		*/
+	}
 	
 	public function SetupDatabase($config)
 	{

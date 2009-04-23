@@ -30,6 +30,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
 
+require_once 'scaffold.php';
 require_once 'pagination.php';
 
 
@@ -37,11 +38,11 @@ require_once 'pagination.php';
 //$view->name = 'tro"ut';
 //echo $view;
 
-$page = new Scaffold_Pagination();
-echo $page;
+//$page = new Scaffold_Pagination(1234, 20);
+echo Scaffold::Url('/sort/name+asc/page/1');
 
  
-//require_once 'scaffold.php';
+
 //require_once 'config.php';
 
 
