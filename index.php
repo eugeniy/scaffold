@@ -30,13 +30,15 @@ error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
 
-require_once 'view.php';
+require_once 'pagination.php';
 
 
+//$view = new Scaffold_View('test.php');
+//$view->name = 'tro"ut';
+//echo $view;
 
-$view = new Scaffold_View('test.php');
-$view->name = 'tro"ut';
-echo $view;
+$page = new Scaffold_Pagination();
+echo $page;
 
  
 //require_once 'scaffold.php';

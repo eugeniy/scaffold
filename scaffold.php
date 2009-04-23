@@ -9,6 +9,8 @@
 * @license http://pandabytes.info/license
 *
 */
+require_once 'view.php';
+
 class Scaffold
 {
 	public static $db;
@@ -34,10 +36,11 @@ class Scaffold
 			if (@include('Zend/Loader.php')) Zend_Loader::registerAutoload();
 			else throw new Exception('Required Zend Framework cannot be loaded.');
 	
-			$this->view = new Zend_View();
-			$this->view->setBasePath('./views');
-			$doctypeHelper = new Zend_View_Helper_Doctype();
-			$doctypeHelper->doctype('XHTML1_STRICT');
+			//$this->view = new Zend_View();
+			//$this->view->setBasePath('./views');
+			//$doctypeHelper = new Zend_View_Helper_Doctype();
+			//$doctypeHelper->doctype('XHTML1_STRICT');
+			
 
 			// Connect to the database
 			if (isset($config['database']) && $this->SetupDatabase($config['database']))
@@ -186,6 +189,7 @@ class Scaffold
 	
 	public function GetList()
 	{
+		$this->view = new Scaffold_View('scripts/list.php');
 		$this->view->fields = $this->table->GetFields();
 		$this->view->primary = $this->primary;
 		$this->view->title = $this->table->GetLabel();	
@@ -213,7 +217,7 @@ class Scaffold
 		$this->view->sortable = empty($sortable) ? array() : $sortable;
 		
 		$this->view->rows = $select->query()->fetchAll();
-		$this->view->pagination = $this->SetupPagination($select);
+		//$this->view->pagination = $this->SetupPagination($select);
 
 		return $this->view->render('list.php');
 	}
