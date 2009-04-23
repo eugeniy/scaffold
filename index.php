@@ -30,19 +30,24 @@ error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
 
-require_once 'scaffold.php';
-require_once 'pagination.php';
+require_once 'config.php';
+//require_once 'scaffold.php';
+require_once 'database.php';
+
+
+$test = new Scaffold_Database($config['database']);
+
 
 
 //$view = new Scaffold_View('test.php');
 //$view->name = 'tro"ut';
 //echo $view;
 
-$page = new Scaffold_Pagination(1234, $_GET['page']);
+#$page = new Scaffold_Pagination(1234, $_GET['page']);
 
-echo $page;
+#echo $page;
 
-//require_once 'config.php';
+
 
 
 //$config['current_table'] = isset($_GET['table']) ? $_GET['table'] : 'products';

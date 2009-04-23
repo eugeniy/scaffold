@@ -10,6 +10,7 @@
 *
 */
 require_once 'view.php';
+require_once 'pagination.php';
 
 class Scaffold
 {
@@ -192,6 +193,17 @@ class Scaffold
 		$this->view->fields = $this->table->GetFields();
 		$this->view->primary = $this->primary;
 		$this->view->title = $this->table->GetLabel();	
+		
+		
+		
+		$query = $this->table->select()->from($this->table, 'count(*) as count');
+		$numRows = $this->table->fetchAll($query)->current()->count;
+		
+		echo '<pre>'; print_r( $numRows ); echo '</pre>';
+		
+		
+		//$numRows =  $this->table->fetchOne($query);
+		
 
 		$offset = $this->itemsPerPage * ($this->page - 1);
 		$select = $this->table->select()->limit($this->itemsPerPage, $offset);
@@ -216,9 +228,13 @@ class Scaffold
 		$this->view->sortable = empty($sortable) ? array() : $sortable;
 		
 		$this->view->rows = $select->query()->fetchAll();
+		
+		
+		$this->view->pagination = Scaffold_Pagination::Factory(1234, $this->page);
+		
 		//$this->view->pagination = $this->SetupPagination($select);
 
-		return $this->view->render('list.php');
+		return $this->view->Render();
 	}
 
 	public function GetForm()
