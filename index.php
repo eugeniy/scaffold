@@ -35,17 +35,18 @@ require_once 'scaffold.php';
 require_once 'db/mysql.php';
 
 
+$config['current_table'] = isset($_GET['table']) ? $_GET['table'] : 'products';
+
+
+
 Scaffold::LoadConfig($config);
 
-echo '<pre>'; print_r( Scaffold::Config('tables','products','fields','category_id','parent','table') ); echo '</pre>';
-//echo '<pre>'; print_r( Scaffold::_Config(array("one",'two','three'),array('one'=>array('two'=>array('three'=>'YO3!!')))) ); echo '</pre>';
 
 
+$test = new Scaffold_Db_Mysql();
 
-//$test = new Scaffold_Db_Mysql($config);
 
-
-//echo '<pre>'; print_r($test->SetTable('products')); echo '</pre>';
+echo '<pre>'; print_r($test->Fields()); echo '</pre>';
 
 
 //$view = new Scaffold_View('test.php');

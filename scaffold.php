@@ -70,8 +70,6 @@ class Scaffold
 	}
 	
 
-	
-	
 
 	public function __construct($config = array())
 	{
@@ -85,11 +83,6 @@ class Scaffold
 			if (@include('Zend/Loader.php')) Zend_Loader::registerAutoload();
 			else throw new Exception('Required Zend Framework cannot be loaded.');
 	
-			//$this->view = new Zend_View();
-			//$this->view->setBasePath('./views');
-			//$doctypeHelper = new Zend_View_Helper_Doctype();
-			//$doctypeHelper->doctype('XHTML1_STRICT');
-			
 
 			// Connect to the database
 			if (isset($config['database']) && $this->SetupDatabase($config['database']))
@@ -221,19 +214,7 @@ class Scaffold
 		}
 	}
 
-	protected function SetupPagination($select)
-	{
-		Zend_Paginator::setDefaultScrollingStyle('Sliding');
-		Zend_View_Helper_PaginationControl::setDefaultViewPartial('pagination.php');
-		
-		$paginator = new Zend_Paginator(new Zend_Paginator_Adapter_DbTableSelect($select));
-		
-		$paginator->setItemCountPerPage($this->itemsPerPage);
-		//$paginator->setPageRange(5);
-		$paginator->setCurrentPageNumber($this->page);
-		
-		return $this->view->paginationControl($paginator);
-	}
+
 	
 	public function GetList()
 	{
@@ -250,8 +231,7 @@ class Scaffold
 		echo '<pre>'; print_r( $numRows ); echo '</pre>';
 		
 		
-		//$numRows =  $this->table->fetchOne($query);
-		
+
 
 		$offset = $this->itemsPerPage * ($this->page - 1);
 		$select = $this->table->select()->limit($this->itemsPerPage, $offset);
