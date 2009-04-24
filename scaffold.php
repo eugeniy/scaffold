@@ -14,6 +14,9 @@ require_once 'pagination.php';
 
 class Scaffold
 {
+	protected static $config = array();
+	
+	
 	public static $db;
 	protected $table;
 	
@@ -24,6 +27,51 @@ class Scaffold
 	protected $primary;
 	protected $id;
 	protected $action = 'list';
+
+
+	public static function LoadConfig($config)
+	{
+		if (is_array($config) AND ! empty($config))
+		{
+			self::$config = $config;
+			return true;
+		}
+		return false;
+	}
+
+
+	
+	public static function Config()
+	{
+		$args = func_get_args();
+		$count = count($args);
+		$config = self::$config;
+		
+		while (true)
+		{
+			$current = current($args);
+
+			if (isset($config[$current]))
+			{
+				// Base-case
+				if ($count <= 1) return $config[$current];
+				
+				// Move to the next array level
+				elseif (is_array($config[$current]))
+				{
+					array_shift($args);
+					$config = $config[$current];
+					$count--;
+				}
+				else return null;
+			}
+			else return null;
+		}
+	}
+	
+
+	
+	
 
 	public function __construct($config = array())
 	{
