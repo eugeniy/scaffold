@@ -26,66 +26,28 @@ class Scaffold_Db_Mysql extends Scaffold_Db
 		return $this;
 	}
 
-
 	public function Fields()
 	{
 		if (empty($this->fields) AND self::$db !== null AND $this->Table() !== null)
 		{
 			$table = $this->Escape($this->table);
+			$output = array();
 
 			foreach (self::$db->query("SHOW COLUMNS FROM {$table}") as $col)
 			{
 				$sortable = Scaffold::Config('tables',$this->table,'fields',$col['Field'],'sortable');
 		
-				$out[$col['Field']] = array(
+				$output[$col['Field']] = array(
 					'label' => Scaffold::Config('tables',$this->table,'fields',$col['Field'],'label'),
 					'type' => Scaffold::Config('tables',$this->table,'fields',$col['Field'],'type'),
 					'sortable' => ($sortable === false) ? false : true,
-					'primary' => ($col['Key'] == 'PRI') ? true : false
+					'primary' => (($col['Key'] == 'PRI' AND empty($this->primary)) OR $col['Field'] == $this->primary) ? true : false
 				);
 			}
-			return $out;
+			$this->fields = $output;
 		}
 		return $this->fields;
 	}
 
-
-	public function Primary($input = null)
-	{
-		// Set and return primary Id
-		if ($input !== null AND is_numeric($input))
-		{
-			$this->primary = $input;
-			return $input;
-		}
-	
-		// Primary Id is already known, simply return it
-		elseif ( ! empty($this->primary))
-			return $this->primary;
-		
-		elseif ( ! empty($this->table))
-		{
-			// Look in the config file
-			$primary = Scaffold::Config('tables',$this->table,'primary');
-			if ($primary !== null)
-			{
-				$this->primary = $primary;
-				return $primary;
-			}
-
-			// Try to automatically select the primary Id from database
-			elseif (self::$db !== null)
-			{
-				$table = $this->Escape($this->table);
-				foreach (self::$db->query("SHOW COLUMNS FROM {$table}") as $col)
-					if ($col['Key'] == 'PRI')
-					{
-						$this->primary = $col['Field'];
-						return $col['Field'];
-					}
-			}
-		}
-		return null;
-	}
 
 }

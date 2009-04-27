@@ -45,8 +45,10 @@ Scaffold::LoadConfig($config);
 
 $test = new Scaffold_Db_Mysql();
 
+//echo $test->Fields();
 
-echo '<pre>'; print_r($test->Fields()); echo '</pre>';
+echo '<pre>'; print_r($test); echo '</pre>';
+
 
 
 //$view = new Scaffold_View('test.php');
