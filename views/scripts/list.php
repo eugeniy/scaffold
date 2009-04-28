@@ -8,9 +8,8 @@
  
 <?php foreach ($this->fields as $key => $value): ?>
 <th><?php
-	if (isset($this->sortable[$key])) echo '<a href="'.Scaffold::Url(array('sort'=>$this->sortable[$key]), true).'">';
-	echo empty($value['label']) ? $key : $value['label'];
-	if (isset($this->sortable[$key])) echo "</a>";
+	if ($value['sortable']) echo '<a href="'.Scaffold::Url(array('sort'=>$value['sort']), true).'">'.$value['label'].'</a>';
+	else echo $value['label'];
 ?></th>
 <?php endforeach; ?>
  

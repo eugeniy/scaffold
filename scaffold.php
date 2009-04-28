@@ -16,13 +16,10 @@ class Scaffold
 {
 	protected static $config = array();
 	
-	
-	public static $db;
 	protected $table;
 	
 	protected $page = 1;
-	protected $itemsPerPage = 10;
-	protected $sort;
+	protected $sort = '';
 
 	protected $primary;
 	protected $id;
@@ -71,42 +68,35 @@ class Scaffold
 	
 
 
+
+
 	public function __construct($config = array())
 	{
-		try
-		{
-			// Set the PATH to Zend
-			if (isset($config['zend_path']) && is_dir($config['zend_path']))
-				set_include_path(get_include_path().PATH_SEPARATOR.$config['zend_path']);
-			
-			// Load Zend Framework
-			if (@include('Zend/Loader.php')) Zend_Loader::registerAutoload();
-			else throw new Exception('Required Zend Framework cannot be loaded.');
-	
+		self::LoadConfig($config);
 
-			// Connect to the database
-			if (isset($config['database']) && $this->SetupDatabase($config['database']))
-			{
-				// Setup the table
-				$this->table =$this->SetupTable($config);
-				$this->primary = $this->table->GetPrimary();
-			}
+		// Select the driver class and connect to the database
+		$dbDriver = 'Scaffold_Db_'.ucfirst(self::Config('database', 'driver'));
+		$this->table = $this->LoadClass($dbDriver);
+		
+		
 
-
-			if (isset($config['pagination']['items_per_page']))
-				$this->itemsPerPage = (int) $config['pagination']['items_per_page'];
-	
-	
-			if ( ! empty($config['auto_build']))
-				echo $this->Build();
-	
-			//echo '<pre>'; print_r($this->parents); echo '</pre>';
-		}
-		catch (Exception $e)
-		{
-			self::GetError('Unknown error.', $e);
-		}
+		if (self::Config('auto_build'))
+			echo $this->Build();
 	}
+	
+	
+	protected function LoadClass($class)
+	{
+		if ( ! class_exists($class) && preg_match('/^Scaffold_([a-z0-9]+)_([a-z0-9]+)$/i', $class, $parts))
+		{
+			$file = strtolower("{$parts[1]}/{$parts[2]}.php");
+			if (is_readable($file)) include_once $file;
+		}
+		return class_exists($class) ? new $class : null;
+	}
+	
+
+	
 	
 	public function Build()
 	{
@@ -134,7 +124,6 @@ class Scaffold
 			default:
 				return $this->GetList();
 		}
-
 	}
 	
 	
@@ -159,110 +148,27 @@ class Scaffold
 		return '?'.http_build_query($attr, '', '&amp;');	
 	}
 	
-	public function SetupDatabase($config)
-	{
-		try
-		{
-			if ( ! isset($config['adapter']) OR ! isset($config['params']))
-				throw new Exception('Connection adapter or parameters are missing.');
 
-			self::$db = Zend_Db::factory($config['adapter'], $config['params']);
-		}
-		catch (Exception $e)
-		{
-			return self::GetError('Database connection failed.', $e);
-		}
-		return true;
-	}
-	
-	public function SetupTable($config, $depth = 1)
-	{
-		require_once 'includes/table.php';
-		try
-		{
-			if ( ! isset(self::$db))
-				throw new Exception('Database connection is not setup.');
-			
-			if ( ! isset($config['current_table']))
-				throw new Exception('Current table name is not given.');
-	
-			$setup['db'] = self::$db;
-			$setup['name'] = $config['current_table'];
-	
-			// Pass user-defined custom table data
-			if (isset($config['tables'][$config['current_table']]))
-				$setup['custom'] = $config['tables'][$config['current_table']];
-	
-			// Pass primary field name if it is given
-			if (isset($setup['custom']['primary']))
-				$setup['primary'] = $setup['custom']['primary'];
-				
-			// Set-up parent tables
-			if (isset($setup['custom']['fields']))
-				foreach ($setup['custom']['fields'] as $key => $value)
-					if (isset($value['parent']))
-					{
-						$config['current_table'] = $value['parent']['table'];
-						$setup['parents'][$key] = $this->SetupTable($config, --$depth);
-					}
-			
-			return new Scaffold_Table($setup);
-		}
-		catch (Exception $e)
-		{
-			return self::GetError("Failed to load the table {$config['current_table']}.", $e);
-		}
-	}
 
 
 	
 	public function GetList()
 	{
-		$this->view = new Scaffold_View('scripts/list.php');
-		$this->view->fields = $this->table->GetFields();
-		$this->view->primary = $this->primary;
-		$this->view->title = $this->table->GetLabel();	
+		$view = new Scaffold_View('scripts/list.php');
+		$view->fields = $this->table->Fields();
+		$view->primary = $this->table->Primary();
+		$view->title = $this->table->Label();
+		$view->count = $this->table->Count();
 		
-		
-		
-		$query = $this->table->select()->from($this->table, 'count(*) as count');
-		$numRows = $this->table->fetchAll($query)->current()->count;
-		
-		echo '<pre>'; print_r( $numRows ); echo '</pre>';
-		
-		
+		// Set-up pagination
+		$pagination = new Scaffold_Pagination($view->count, $this->page);
+		$view->pagination = $pagination->Render();
 
-
-		$offset = $this->itemsPerPage * ($this->page - 1);
-		$select = $this->table->select()->limit($this->itemsPerPage, $offset);
+		// Fetch rows
+		$this->table->Limit($pagination->GetLimit(), $pagination->GetOffset());
+		$view->rows = $this->table->Order($this->sort)->FetchAll();
 		
-		// Default Sorting
-		foreach ($this->view->fields as $key => $value)
-			if ( ! isset($value['sortable']) OR $value['sortable'] !== false)
-				$sortable[$key] = "{$key} asc";
-
-			// User specified sorting
-		if ( ! empty($this->sort))
-		{
-			$parts = explode(' ', $this->sort);
-			if (array_key_exists($parts[0], $sortable) && isset($parts[1]))
-			{
-				$direction = ($parts[1] == 'desc') ? 'desc' : 'asc';
-				$select->order("{$parts[0]} {$direction}");
-				// Switch the direction for the output
-				$sortable[$parts[0]] = ($direction == 'desc') ? "{$parts[0]} asc" : "{$parts[0]} desc";
-			}
-		}
-		$this->view->sortable = empty($sortable) ? array() : $sortable;
-		
-		$this->view->rows = $select->query()->fetchAll();
-		
-		
-		$this->view->pagination = Scaffold_Pagination::Factory(1234, $this->page);
-		
-		//$this->view->pagination = $this->SetupPagination($select);
-
-		return $this->view->Render();
+		return $view->Render();
 	}
 
 	public function GetForm()

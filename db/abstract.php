@@ -3,12 +3,19 @@
 abstract class Scaffold_Db
 {
 	public static $db = null;
+	
+	protected $useCache = true;
 
 	protected $table = null;
 	protected $primary = null;
 	
-	protected $fields = array();
+	protected $_limit = '';
+	protected $_order = '';
 	
+	protected $data = null;
+
+	protected $fields = array();
+
 	protected $label = null;
 
 
@@ -19,6 +26,7 @@ abstract class Scaffold_Db
 		
 		$this->Table();
 		$this->Primary();
+		$this->Label();
 	}
 	
 	protected function Escape($in)
@@ -35,6 +43,11 @@ abstract class Scaffold_Db
 				$out = ($in === null) ? 'NULL' : $in;
 		}
 		return $out;
+	}
+	
+	protected function FormatLabel($input = '')
+	{
+		return ucwords(str_replace(array('_','-'), ' ', $input));
 	}
 	
 
@@ -57,10 +70,11 @@ abstract class Scaffold_Db
 		if ($input !== null AND is_string($input))
 			$this->label = $input;
 
-		elseif (empty($this->label))
+		elseif (empty($this->label) AND $this->Table() !== null)
 		{
 			$label = Scaffold::Config('tables',$this->table,'label');
 			if ($label !== null) $this->label = $label;
+			else $this->label = $this->FormatLabel($this->table);
 		}
 		return $this->label;
 	}
@@ -95,10 +109,21 @@ abstract class Scaffold_Db
 	}
 	
 	
+	
+
+
+
+	// Chainable
+	abstract public function Limit($limit, $offset);
+	abstract public function Order($sort);
+	
+	abstract public function FetchAll();
 
 	abstract public function Fields();
 
 	// Chainable
 	abstract public function Connect($databaseConfig);
+	
+	abstract public function Count();
 	
 }

@@ -32,40 +32,13 @@ ini_set('display_errors', '1');
 
 require_once 'config.php';
 require_once 'scaffold.php';
-require_once 'db/mysql.php';
 
 
 $config['current_table'] = isset($_GET['table']) ? $_GET['table'] : 'products';
 
 
+$test = new Scaffold($config);
 
-Scaffold::LoadConfig($config);
-
-
-
-$test = new Scaffold_Db_Mysql();
-
-//echo $test->Fields();
-
-echo '<pre>'; print_r($test); echo '</pre>';
-
-
-
-//$view = new Scaffold_View('test.php');
-//$view->name = 'tro"ut';
-//echo $view;
-
-#$page = new Scaffold_Pagination(1234, $_GET['page']);
-
-#echo $page;
-
-
-
-
-//$config['current_table'] = isset($_GET['table']) ? $_GET['table'] : 'products';
-
-
-//$test = new Scaffold($config);
  
 ?>
  
