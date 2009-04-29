@@ -117,9 +117,15 @@ abstract class Scaffold_Db
 	abstract public function Limit($limit, $offset);
 	abstract public function Order($sort);
 	
+	abstract public function FetchOne($id);
 	abstract public function FetchAll();
 
 	abstract public function Fields();
+
+
+	abstract public function Save($data);
+	//abstract public function Delete();
+
 
 	// Chainable
 	abstract public function Connect($databaseConfig);

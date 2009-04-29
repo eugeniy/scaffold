@@ -34,7 +34,7 @@ class Scaffold_View
 
 	public function Escape($value)
 	{
-		return htmlentities($value);
+		return htmlentities(stripslashes($value));
 	}
 	
 	// Chainable

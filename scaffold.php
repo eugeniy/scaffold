@@ -22,7 +22,7 @@ class Scaffold
 	protected $sort = '';
 
 	protected $primary;
-	protected $id;
+	protected $id = null;
 	protected $action = 'list';
 
 
@@ -173,22 +173,35 @@ class Scaffold
 
 	public function GetForm()
 	{
-		$this->view->fields = $this->table->GetFields();
-		$this->view->primary = $this->primary;
-		$this->view->title = $this->table->GetLabel();
-		$this->view->action = 'save';
-
-		if (isset($this->id))
-		{
-			$select = $this->table->select()->where("{$this->primary} = ?", $this->id);
-			$this->view->data = $this->table->fetchRow($select)->toArray();
-		}
+		$view = new Scaffold_View('scripts/form.php');
+		$view->fields = $this->table->Fields();
+		$view->primary = $this->table->Primary();
+		$view->title = $this->table->Label();
 		
-		return $this->view->render('form.php');
+		$data = $this->table->FetchOne($this->id);
+		
+		// Set default values for the output
+		if ( ! is_array($data)) 
+			foreach ($view->fields as $key => $value)
+				$data[$this->id][$key] = $value['default'];
+
+		$view->data = current($data);
+
+		return $view->Render();
 	}
 	
 	protected function Save()
 	{
+		
+		
+		
+		$status = $this->table->Save($_POST);
+		
+		if ($status) echo 'Saved';
+		else echo 'Error!';
+		
+		
+		/*
 		$this->view->fields = $this->table->GetFields();
 		$this->view->primary = $this->primary;
 		
@@ -211,6 +224,7 @@ class Scaffold
 		}
 		
 		return $this->GetForm();
+		*/
 	}
 
 }

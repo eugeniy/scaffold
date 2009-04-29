@@ -1,11 +1,7 @@
-<?php if (isset($this->error)) echo "<div>{$this->error}</div>"; ?>
-
-<form action="?action=<?php echo $this->escape($this->action); ?>" method="post">
+<form action="?action=save" method="post">
 <ul>
  
-<?php foreach ($this->fields as $key => $field): ?>
-
-<?php if ($key == $this->primary && empty($this->data[$key])) continue; ?>
+<?php foreach ($fields as $key => $field): ?>
 
 <li>
 	<label for="<?php echo $key; ?>"><?php echo empty($field['label']) ? $key : $field['label']; ?>: </label>
@@ -14,7 +10,7 @@
 
 	switch ($this->fields[$key]['type'])
 	{
-		case 'password':
+		/*case 'password':
 			echo $this->formPassword($key, $this->escape($this->data[$key]));
 			break;
 
@@ -40,10 +36,11 @@
 		case 'textarea':
 		case 'auto_text':
 			echo $this->formTextarea($key, $this->escape($this->data[$key]), array('cols'=>45,'rows'=>7));
-			break;
+			break;*/
 
 		default:
-			echo $this->formText($key, $this->escape($this->data[$key]));
+			//echo $this->formText($key, $this->escape($this->data[$key]));
+			echo '<input type="text" name="'.$key.'" id="'.$key.'" value="'.$this->Escape($data[$key]).'" />';
 	}
 	
 	?>
@@ -51,6 +48,8 @@
 </li>
 
 <?php endforeach; ?>
+
+<input type="text" name="bogus" value="bogus value" />
 
 <li><input type="submit" value="Save" /></li>
  
