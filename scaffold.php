@@ -11,6 +11,7 @@
 */
 require_once 'view.php';
 require_once 'pagination.php';
+require_once 'db.php';
 
 class Scaffold
 {
@@ -74,26 +75,15 @@ class Scaffold
 	{
 		self::LoadConfig($config);
 
-		// Select the driver class and connect to the database
-		$dbDriver = 'Scaffold_Db_'.ucfirst(self::Config('database', 'driver'));
-		$this->table = $this->LoadClass($dbDriver);
-		
+
+		$this->table = new Scaffold_Db();
 		
 
 		if (self::Config('auto_build'))
 			echo $this->Build();
 	}
 	
-	
-	protected function LoadClass($class)
-	{
-		if ( ! class_exists($class) && preg_match('/^Scaffold_([a-z0-9]+)_([a-z0-9]+)$/i', $class, $parts))
-		{
-			$file = strtolower("{$parts[1]}/{$parts[2]}.php");
-			if (is_readable($file)) include_once $file;
-		}
-		return class_exists($class) ? new $class : null;
-	}
+
 	
 
 	
@@ -154,8 +144,7 @@ class Scaffold
 	
 	public function GetList()
 	{
-		$view = new Scaffold_View('scripts/list.php');
-		$view->fields = $this->table->Fields();
+		$view = new Scaffold_View('list.php');
 		$view->primary = $this->table->Primary();
 		$view->title = $this->table->Label();
 		$view->count = $this->table->Count();
@@ -167,13 +156,14 @@ class Scaffold
 		// Fetch rows
 		$this->table->Limit($pagination->GetLimit(), $pagination->GetOffset());
 		$view->rows = $this->table->Order($this->sort)->FetchAll();
+		$view->fields = $this->table->Fields();
 		
 		return $view->Render();
 	}
 
 	public function GetForm()
 	{
-		$view = new Scaffold_View('scripts/form.php');
+		$view = new Scaffold_View('form.php');
 		$view->fields = $this->table->Fields();
 		$view->primary = $this->table->Primary();
 		$view->title = $this->table->Label();

@@ -49,8 +49,6 @@
 
 <?php endforeach; ?>
 
-<input type="text" name="bogus" value="bogus value" />
-
 <li><input type="submit" value="Save" /></li>
  
 </ul>
