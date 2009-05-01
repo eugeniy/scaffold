@@ -131,7 +131,7 @@ class Scaffold_Db
 		if (array_key_exists($parts[0], $this->Fields()) AND isset($parts[1]))
 		{
 			$direction = ($parts[1] == 'desc') ? 'desc' : 'asc';
-			$this->_order = " ORDER BY {$parts[0]} {$direction} ";
+			$this->_order = " ORDER BY {$this->table}.{$parts[0]} {$direction} ";
 			// Switch the direction in the field information
 			$direction = ($direction == 'asc') ? 'desc' : 'asc';
 			$this->fields[$parts[0]]['sort'] = "{$parts[0]} {$direction}";
