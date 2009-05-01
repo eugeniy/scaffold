@@ -147,7 +147,8 @@ class Scaffold_Db
 			$result = self::$db->query($query);
 			$this->data[$id] = $result->fetch(PDO::FETCH_ASSOC);
 		}
-		return $this->data;
+		if (is_array($this->data)) return $this->data[$id];
+		else return $this->data;
 	}
 	
 	public function FetchAll()
@@ -201,15 +202,34 @@ class Scaffold_Db
 			// Set the parent data
 			if (isset($parentData) AND is_array($parentData))
 				foreach ($parentData as $key => $value)
-					$this->parents[$key]->SetData($value);
+					$this->parents[$key]->Data($value);
 		}
 		return $this->data;
 	}
 	
 	
-	public function SetData($data = array())
+	public function FetchParentsList()
 	{
-		$this->data = $data;
+		$output = array();
+		foreach ($this->parents as $field=>$parent)
+		{
+			$label = Scaffold::Config('tables',$this->Table(),'fields',$field,'parent_display');
+			foreach ($parent->Data() as $id=>$value)
+			{
+				if (is_array($value))
+					$output[$field][$id] = array_key_exists($label, $value) ? $value[$label] : current($value);
+				else $output[$field][$id] = '';
+			}
+		}
+		return $output;
+	}
+	
+	
+	public function Data($data = null)
+	{
+		if ($data !== null AND is_array($data))
+			$this->data = $data;
+		return $this->data;
 	}
 
 	

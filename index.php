@@ -85,7 +85,7 @@ $config['current_table'] = isset($_GET['table']) ? $_GET['table'] : 'products';
 $test = new Scaffold($config);
 
 
-echo '<pre>'; print_r($test); echo '</pre>';
+//echo '<pre>'; print_r($test); echo '</pre>';
 
 ?>
  

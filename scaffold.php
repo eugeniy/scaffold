@@ -158,6 +158,8 @@ class Scaffold
 		$view->rows = $this->table->Order($this->sort)->FetchAll();
 		$view->fields = $this->table->Fields();
 		
+		$view->parents = $this->table->FetchParentsList();
+		
 		return $view->Render();
 	}
 
@@ -173,9 +175,9 @@ class Scaffold
 		// Set default values for the output
 		if ( ! is_array($data)) 
 			foreach ($view->fields as $key => $value)
-				$data[$this->id][$key] = $value['default'];
+				$data[$key] = $value['default'];
 
-		$view->data = current($data);
+		$view->data = $data;
 
 		return $view->Render();
 	}
